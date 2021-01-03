@@ -5,31 +5,40 @@ package wikiprov
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
+
+func getRevisionProperties() string {
+	return strings.Join(revisionPropertiesDefault[:], "|")
+}
 
 // buildRequest will build the request we want to send to Wikibase.
 // An error is returned if the request is malformed.
 func buildRequest(ids string) (*http.Request, error) {
 	const paramFormat = "format"
 	const paramAction = "action"
-	const paramIDs = "ids"
-	const paramProps = "props"
+	const paramTitles = "titles"
+	const paramProps = "prop"
+	const paramLimit = "rvlimit"
+	const paramRevisionProps = "rvprops"
 
 	req, err := http.NewRequest("GET", wikibaseAPI, nil)
 	if err != nil {
 		return nil, err
 	}
-	query := req.URL.Query()
 
+	query := req.URL.Query()
 	query.Set(paramFormat, format)
 	query.Set(paramAction, action)
-	query.Set(paramIDs, ids)
-	query.Set(paramProps, props)
+	query.Set(paramTitles, ids)
+	query.Set(paramProps, prop)
+	query.Set(paramLimit, fmt.Sprintf("%d", revisionLimitDefault))
+	query.Set(paramRevisionProps, getRevisionProperties())
 
 	req.URL.RawQuery = query.Encode()
-
 	req.Header.Add("User-Agent", agent)
 
 	return req, nil
@@ -59,13 +68,17 @@ func GetWikidataProvenance(ids string) (Provenance, error) {
 		return Provenance{}, err
 	}
 
-	var info wdInfo
-	info.ID = ids
+	var wdRevisions wdRevisions
 
-	err = json.Unmarshal(data, &info)
+	err = json.Unmarshal(data, &wdRevisions)
 	if err != nil {
 		return Provenance{}, err
 	}
 
-	return info.normalize(), nil
+	return wdRevisions.normalize(), nil
+}
+
+// Version returns the agent string for this package.
+func Version() string {
+	return agent
 }
