@@ -1,6 +1,22 @@
 // Package wikiprov provides functions to enable simple reification,
 // i.e. provenance/fixity of Wikidata entities. The module can be
 // extended to other Wikibase sites in the future.
+//
+// The package constructs an API call for the Wikibase Query endpoint
+// and then uses that data to create a normalized "provenance" struct
+// that should be easier to work with for the caller.
+//
+// An example API query we need to construct:
+//
+//  https://www.wikidata.org/w/api.php?action=query&format=json&prop=revisions&titles=Q5381415&rvlimit=200&rvprop=ids|user|comment|timestamp|sha1
+//
+// We'll also use some of these values to build a permalink for that
+// provenance struct which looks as follows:
+//
+//	https://www.wikidata.org/w/index.php?title=Q178051&oldid=1301912874&format=json
+//
+//  https://www.wikidata.org/w/index.php?title=<QID>&oldid=<REVISION>&format=json
+//
 package wikiprov
 
 import (
