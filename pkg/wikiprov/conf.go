@@ -21,6 +21,4 @@ var format = "json"
 var action = "query"
 var prop = "revisions"
 
-const revisionLimitDefault = 20
-
 var revisionPropertiesDefault = [...]string{"ids", "user", "comment", "timestamp", "sha1"}

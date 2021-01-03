@@ -17,7 +17,7 @@ func getRevisionProperties() string {
 
 // buildRequest will build the request we want to send to Wikibase.
 // An error is returned if the request is malformed.
-func buildRequest(ids string) (*http.Request, error) {
+func buildRequest(ids string, history int) (*http.Request, error) {
 	const paramFormat = "format"
 	const paramAction = "action"
 	const paramTitles = "titles"
@@ -35,7 +35,7 @@ func buildRequest(ids string) (*http.Request, error) {
 	query.Set(paramAction, action)
 	query.Set(paramTitles, ids)
 	query.Set(paramProps, prop)
-	query.Set(paramLimit, fmt.Sprintf("%d", revisionLimitDefault))
+	query.Set(paramLimit, fmt.Sprintf("%d", history))
 	query.Set(paramRevisionProps, getRevisionProperties())
 
 	req.URL.RawQuery = query.Encode()
@@ -47,9 +47,9 @@ func buildRequest(ids string) (*http.Request, error) {
 // GetWikidataProvenance requests the entity data we need from the
 // Wikibase API and returns a structure containing the information that
 // we're interested in, augmented with a permalink to the record.
-func GetWikidataProvenance(ids string) (Provenance, error) {
+func GetWikidataProvenance(ids string, history int) (Provenance, error) {
 
-	request, err := buildRequest(ids)
+	request, err := buildRequest(ids, history)
 	if err != nil {
 		return Provenance{}, err
 	}
