@@ -13,7 +13,7 @@
 // We'll also use some of these values to build a permalink for that
 // provenance struct which looks as follows:
 //
-//	https://www.wikidata.org/w/index.php?title=Q178051&oldid=1301912874&format=json
+//  https://www.wikidata.org/w/index.php?title=Q178051&oldid=1301912874&format=json
 //
 //  https://www.wikidata.org/w/index.php?title=<QID>&oldid=<REVISION>&format=json
 //
@@ -33,7 +33,7 @@ func getRevisionProperties() string {
 
 // buildRequest will build the request we want to send to Wikibase.
 // An error is returned if the request is malformed.
-func buildRequest(ids string, history int) (*http.Request, error) {
+func buildRequest(id string, history int) (*http.Request, error) {
 	const paramFormat = "format"
 	const paramAction = "action"
 	const paramTitles = "titles"
@@ -49,7 +49,7 @@ func buildRequest(ids string, history int) (*http.Request, error) {
 	query := req.URL.Query()
 	query.Set(paramFormat, format)
 	query.Set(paramAction, action)
-	query.Set(paramTitles, ids)
+	query.Set(paramTitles, id)
 	query.Set(paramProps, prop)
 	query.Set(paramLimit, fmt.Sprintf("%d", history))
 	query.Set(paramRevisionProps, getRevisionProperties())
@@ -63,9 +63,9 @@ func buildRequest(ids string, history int) (*http.Request, error) {
 // GetWikidataProvenance requests the entity data we need from the
 // Wikibase API and returns a structure containing the information that
 // we're interested in, augmented with a permalink to the record.
-func GetWikidataProvenance(ids string, history int) (Provenance, error) {
+func GetWikidataProvenance(id string, history int) (Provenance, error) {
 
-	request, err := buildRequest(ids, history)
+	request, err := buildRequest(id, history)
 	if err != nil {
 		return Provenance{}, err
 	}
