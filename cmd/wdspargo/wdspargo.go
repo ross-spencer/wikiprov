@@ -25,17 +25,21 @@ const ENDPOINT string = "ENDPOINT"
 const wikiEndpoint string = "https://query.wikidata.org/sparql"
 
 var (
-	vers     bool
-	query    string
-	endpoint string
-	iri      string
+	vers       bool
+	query      string
+	endpoint   string
+	iri        string
+	lenHistory int
+	threads    int
 )
 
 func init() {
 	flag.StringVar(&endpoint, "endpoint", "", "endpoint to query")
 	flag.StringVar(&query, "query", "", "sparql query to run")
 	flag.StringVar(&iri, "iri", "", "for provenance a field needs to be specified that contains the Wikidata IRI")
-	flag.BoolVar(&vers, "version", false, "Return version")
+	flag.IntVar(&lenHistory, "history", 5, "length of history to return to the caller")
+	flag.IntVar(&threads, "threads", 10, "number of go routines to use to fetch provenance")
+	flag.BoolVar(&vers, "version", false, "application version and user-agent")
 }
 
 // Check for spargo shebang.
@@ -86,25 +90,13 @@ func runQuery(sparqlFile string) {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
-
 	fmt.Fprintf(os.Stderr, "Connecting to: %s\n\n", url)
-	fmt.Fprintf(os.Stderr, "Query: %s\n\n", queryString)
-
-	sparqlMe := spargo.SPARQLClient{}
-	sparqlMe.ClientInit(url, queryString)
-	res := sparqlMe.SPARQLGo()
-
+	fmt.Fprintf(os.Stderr, "Query: %s\n", queryString)
+	fmt.Fprintf(os.Stderr, "History: %d, Threads: %d\n", lenHistory, threads)
 	if iri == "" {
-		fmt.Println(res.Human)
+		fmt.Fprintf(os.Stderr, "Not returning provenance for query\n\n")
 	}
-
-	// Customize to add provenance from Wikibase.
-	provResults := spargo.WikiProv{}
-	provResults.Head = res.Head
-	provResults.Binding = res.Results
-	provResults.AttachProvenance(iri)
-
-	// Output modified SPARQL results string.
+	provResults, err := spargo.SPARQLWithProv(url, queryString, iri, lenHistory, threads)
 	fmt.Println(provResults)
 }
 

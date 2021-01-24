@@ -87,7 +87,7 @@ type wdRevisions struct {
 //  	"Title": "Q27229608",
 //  	"Revision": 784082439,
 //  	"Modified": "2018-11-07T16:26:11Z",
-//  	"Permalink": "https://www.wikidata.org/w/index.php?format=json\u0026oldid=0\u0026title="
+//  	"Permalink": "https://www.wikidata.org/w/index.php?format=json&oldid=0&title="
 //      "History": [ ... ]
 // }
 //
