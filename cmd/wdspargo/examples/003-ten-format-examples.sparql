@@ -1,0 +1,28 @@
+#!/usr/bin/spargo
+
+ENDPOINT=https://query.wikidata.org/sparql
+
+# Return all file format records from Wikidata.
+
+SELECT DISTINCT ?uri ?uriLabel ?puid ?extension ?mimetype ?encodingLabel ?referenceLabel ?date ?relativityLabel ?offset ?sig
+WHERE
+{
+  ?uri wdt:P31/wdt:P279* wd:Q235557.               # Return records of type File Format.
+  OPTIONAL { ?uri wdt:P2748 ?puid.      }          # PUID is used to map to PRONOM signatures proper.
+  OPTIONAL { ?uri wdt:P1195 ?extension. }
+  OPTIONAL { ?uri wdt:P1163 ?mimetype.  }
+  OPTIONAL { ?uri p:P4152 ?object;                 # Format identification pattern statement.
+    OPTIONAL { ?object pq:P3294 ?encoding.   }     # We don't always have an encoding.
+    OPTIONAL { ?object ps:P4152 ?sig.        }     # We always have a signature.
+    OPTIONAL { ?object pq:P2210 ?relativity. }     # Relativity to beginning or end of file.
+    OPTIONAL { ?object pq:P4153 ?offset.     }     # Offset relatve to the relativity.
+    OPTIONAL { ?object prov:wasDerivedFrom ?provenance;
+       OPTIONAL { ?provenance pr:P248 ?reference;
+                              pr:P813 ?date.
+                }
+    }
+  }
+  service wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE], <<lang>>". }
+}
+order by ?uri
+LIMIT 10

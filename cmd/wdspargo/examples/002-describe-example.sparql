@@ -1,0 +1,6 @@
+#!/usr/bin/spargo
+
+ENDPOINT=https://query.wikidata.org/sparql
+
+# Describe JPEG2000 in Wikidata database.
+describe wd:Q931783

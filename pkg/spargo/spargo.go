@@ -18,6 +18,10 @@ import (
 	"github.com/ross-spencer/wikiprov/pkg/wikiprov"
 )
 
+// DefaultAgent as it exists in the spargo package exported to enable
+// dropping this package into host packages/executables.
+const DefaultAgent = spargo.DefaultAgent
+
 // Binding as it exists in the spargo package exported to enable
 // dropping this package into host packages/executables.
 type Binding = spargo.Binding
