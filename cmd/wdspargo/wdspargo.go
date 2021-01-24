@@ -97,6 +97,9 @@ func runQuery(sparqlFile string) {
 		fmt.Fprintf(os.Stderr, "Not returning provenance for query\n\n")
 	}
 	provResults, err := spargo.SPARQLWithProv(url, queryString, iri, lenHistory, threads)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+	}
 	fmt.Println(provResults)
 }
 

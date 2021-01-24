@@ -7,8 +7,10 @@ Where the generic SPARQL results from any service look as follows:
 
 ```json
 {
-	"Head": {},
-	"Bindings": {}
+	"head": {},
+	"results": {
+    "bindings": [{}]
+  }
 }
 ```
 With Wikidata sitting on-top of a Wikibase instance, it allows us to try and
@@ -18,9 +20,11 @@ our query results anyway. Those results take the form:
 
 ```json
 {
-	"Head": {},
-	"Bindings": {},
-	"Provenance": {}
+	"head": {},
+  "results": {
+    "bindings": [{}]
+  },
+	"provenance": {}
 }
 ```
 The `Provenance` block comes from the wikiprov package and (per unique QID)

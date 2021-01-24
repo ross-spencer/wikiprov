@@ -28,6 +28,10 @@ const DefaultAgent = spargo.DefaultAgent
 // dropping this package into host packages/executables.
 type Binding = spargo.Binding
 
+type test struct {
+	Binding
+}
+
 // Item as it exists in the spargo package exported to enable dropping
 // this package into host packages/executables.
 type Item = spargo.Item
@@ -44,9 +48,9 @@ type SPARQLResult = spargo.SPARQLResult
 // provenance without attempting to modify the generic capabilities of
 // the wikiprov's sister package.
 type WikiProv struct {
-	Head map[string]interface{}
-	Binding
-	Provenance []wikiprov.Provenance `json:"Provenance,string,omitempty"`
+	Head       map[string]interface{} `json:"head"`
+	Binding    `json:"results"`
+	Provenance []wikiprov.Provenance `json:"provenance,omitempty"`
 }
 
 // maxChannels determines the number of channels to use in requests to
