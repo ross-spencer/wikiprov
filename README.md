@@ -7,8 +7,8 @@ Where the generic SPARQL results from any service look as follows:
 
 ```json
 {
-	"head": {},
-	"results": {
+  "head": {},
+  "results": {
     "bindings": [{}]
   }
 }
@@ -20,11 +20,11 @@ our query results anyway. Those results take the form:
 
 ```json
 {
-	"head": {},
+  "head": {},
   "results": {
     "bindings": [{}]
   },
-	"provenance": {}
+  "provenance": {}
 }
 ```
 The `Provenance` block comes from the wikiprov package and (per unique QID)
