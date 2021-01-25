@@ -28,10 +28,6 @@ const DefaultAgent = spargo.DefaultAgent
 // dropping this package into host packages/executables.
 type Binding = spargo.Binding
 
-type test struct {
-	Binding
-}
-
 // Item as it exists in the spargo package exported to enable dropping
 // this package into host packages/executables.
 type Item = spargo.Item
