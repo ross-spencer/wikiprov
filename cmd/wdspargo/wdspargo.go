@@ -28,7 +28,7 @@ var (
 	vers       bool
 	query      string
 	endpoint   string
-	iri        string
+	variable   string
 	lenHistory int
 	threads    int
 )
@@ -36,7 +36,7 @@ var (
 func init() {
 	flag.StringVar(&endpoint, "endpoint", "", "endpoint to query")
 	flag.StringVar(&query, "query", "", "sparql query to run")
-	flag.StringVar(&iri, "iri", "", "for provenance a field needs to be specified that contains the Wikidata IRI")
+	flag.StringVar(&variable, "variable", "", "for provenance a SPARQL ?variable needs to be specified that contains a Wikidata IRI")
 	flag.IntVar(&lenHistory, "history", 5, "length of history to return to the caller")
 	flag.IntVar(&threads, "threads", 10, "number of go routines to use to fetch provenance")
 	flag.BoolVar(&vers, "version", false, "application version and user-agent")
@@ -57,7 +57,6 @@ func extractQuery(sparqlFile string) (string, string, error) {
 	var shebang, url, queryString string
 	var err error
 	for _, line := range strings.Split(sparqlFile, "\n") {
-
 		if line == "" {
 			// Pass.
 		} else if matchShebang(line, SHEBANG) {
@@ -93,10 +92,10 @@ func runQuery(sparqlFile string) {
 	fmt.Fprintf(os.Stderr, "Connecting to: %s\n\n", url)
 	fmt.Fprintf(os.Stderr, "Query: %s\n", queryString)
 	fmt.Fprintf(os.Stderr, "History: %d, Threads: %d\n", lenHistory, threads)
-	if iri == "" {
+	if variable == "" {
 		fmt.Fprintf(os.Stderr, "Not returning provenance for query\n\n")
 	}
-	provResults, err := spargo.SPARQLWithProv(url, queryString, iri, lenHistory, threads)
+	provResults, err := spargo.SPARQLWithProv(url, queryString, variable, lenHistory, threads)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 	}
@@ -178,7 +177,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Usage:  wdspargo {options}              ")
 		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-sparql] ...")
 		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-query]  ...")
-		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-iri]  ...")
+		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-variable]  ...")
 		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-version]   ")
 		fmt.Fprintln(os.Stderr, "")
 		fmt.Fprintln(os.Stderr, "Output: [JSON]   {url}")
