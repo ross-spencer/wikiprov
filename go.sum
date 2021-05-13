@@ -1,4 +1,4 @@
-github.com/httpreserve/simplerequest v0.0.0-20170904111322-6f325573aa95/go.mod h1:1gggeoGjBdclzVr/HfTjL6AtLe6ei+2oNjVT++aZacw=
-github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
-github.com/ross-spencer/spargo v0.0.0-20210125002137-2857c174aae4 h1:mlqd1wEbwvkjvwy9UjKzeZh3VybQZoOIMIiB5m53IIo=
-github.com/ross-spencer/spargo v0.0.0-20210125002137-2857c174aae4/go.mod h1:mQF2NJEnfn++SbEuoIy3KNBPb5MS763DvbudO9xNhBA=
+github.com/ross-spencer/spargo v0.4.0 h1:9PkR2Finkv04xmqRJ+kIPlkTq/nafAPt4E1lceCMfZk=
+github.com/ross-spencer/spargo v0.4.0/go.mod h1:mQF2NJEnfn++SbEuoIy3KNBPb5MS763DvbudO9xNhBA=
+github.com/ross-spencer/spargo v0.4.1 h1:+a570tI+az8j/s0+06mntNqwsJ7DXuq7PESUIXlKie8=
+github.com/ross-spencer/spargo v0.4.1/go.mod h1:szEHC5cu+q6g0RD7otV7xvYGb+fQVYj1/SkiVTr4IC4=

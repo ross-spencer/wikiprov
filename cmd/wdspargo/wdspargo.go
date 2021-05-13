@@ -28,7 +28,7 @@ var (
 	vers       bool
 	query      string
 	endpoint   string
-	variable   string
+	param      string
 	lenHistory int
 	threads    int
 )
@@ -36,7 +36,7 @@ var (
 func init() {
 	flag.StringVar(&endpoint, "endpoint", "", "endpoint to query")
 	flag.StringVar(&query, "query", "", "sparql query to run")
-	flag.StringVar(&variable, "variable", "", "for provenance a SPARQL ?variable needs to be specified that contains a Wikidata IRI")
+	flag.StringVar(&param, "param", "", "for provenance a SPARQL ?param needs to be specified that contains a Wikidata IRI")
 	flag.IntVar(&lenHistory, "history", 5, "length of history to return to the caller")
 	flag.IntVar(&threads, "threads", 10, "number of go routines to use to fetch provenance")
 	flag.BoolVar(&vers, "version", false, "application version and user-agent")
@@ -82,7 +82,6 @@ func extractQuery(sparqlFile string) (string, string, error) {
 	return url, queryString, err
 }
 
-// TODO: Use a better pattern to parse the input of a SPARQL file...
 func runQuery(sparqlFile string) {
 	url, queryString, err := extractQuery(sparqlFile)
 	if err != nil {
@@ -92,10 +91,10 @@ func runQuery(sparqlFile string) {
 	fmt.Fprintf(os.Stderr, "Connecting to: %s\n\n", url)
 	fmt.Fprintf(os.Stderr, "Query: %s\n", queryString)
 	fmt.Fprintf(os.Stderr, "History: %d, Threads: %d\n", lenHistory, threads)
-	if variable == "" {
+	if param == "" {
 		fmt.Fprintf(os.Stderr, "Not returning provenance for query\n\n")
 	}
-	provResults, err := spargo.SPARQLWithProv(url, queryString, variable, lenHistory, threads)
+	provResults, err := spargo.SPARQLWithProv(url, queryString, param, lenHistory, threads)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 	}
@@ -186,7 +185,7 @@ func main() {
 		os.Exit(0)
 	} else {
 		fmt.Println("Welcome to spargo: arg handling is not yet implemented. Take a look at the README.md for examples on how to used spargo with piped input...")
-		fmt.Println("\nDebug, inputs:\n")
+		fmt.Printf("\nDebug, inputs:\n\n")
 		fmt.Printf("   * SPARQL: '%s' \n", endpoint)
 		fmt.Printf("   * Query: '%s' \n", query)
 		fmt.Println("")

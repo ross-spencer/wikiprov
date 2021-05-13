@@ -57,6 +57,17 @@ type WikiProv struct {
 // processing can be pretty slow.
 var maxChannels = 10
 
+// fixKey makes it a little easier to work with the library by making
+// sure that if a parameter is specified with '?' in it, the results
+// will still be returned to the caller if a matching key is found.
+// fixkey will strip the leading '?'.
+func fixKey(key string) string {
+	if key[0] == '?' {
+		return key[1:]
+	}
+	return key
+}
+
 // SPARQLWithProv is used to query the Wikidata query service and attach
 // Wikibase provenance. History can be configured as well as the number
 // of threads used to connect to Wikibase. The key provided this
@@ -68,17 +79,21 @@ var maxChannels = 10
 func SPARQLWithProv(endpoint string, queryString string, key string, lenHistory int, threads int) (WikiProv, error) {
 	sparqlMe := SPARQLClient{}
 	sparqlMe.ClientInit(endpoint, queryString)
-	res := sparqlMe.SPARQLGo()
+	res, err := sparqlMe.SPARQLGo()
+	if err != nil {
+		return WikiProv{}, err
+	}
 	provResults := WikiProv{}
 	provResults.Head = res.Head
 	provResults.Binding = res.Results
 	if key == "" {
 		return provResults, nil
 	}
+	key = fixKey(key)
 	if threads > maxChannels {
 		threads = maxChannels
 	}
-	err := provResults.attachProvenance(key, lenHistory, threads)
+	err = provResults.attachProvenance(key, lenHistory, threads)
 	if err != nil {
 		return WikiProv{}, err
 	}
@@ -88,12 +103,17 @@ func SPARQLWithProv(endpoint string, queryString string, key string, lenHistory 
 // validateIRI will attempt to perform some basic validation on IRI's
 // we're trying to retrieve provenance information for. We need to build
 // up a set of rules.
+//
+// NB. There was a URL validation rule here, e.g. did the value from
+// the ?param have a sensible URL that would then be queried for
+// provenance results. The configuration needed for this downstream
+// starts to get complicated when you consider downstream has to work
+// with a query service (SPARQL endpoint) and a Wikibase base URL that
+// might both need to be configured.
+//
+//
 func validateIRI(iri string) bool {
-	const wikidata string = "wikidata.org"
 	const statement string = "statement"
-	if !strings.Contains(iri, wikidata) {
-		return false
-	}
 	if strings.Contains(iri, statement) {
 		return false
 	}
@@ -117,6 +137,11 @@ func getQID(iri string) (string, error) {
 	return qid, nil
 }
 
+// ErrProvAttach provides a method for the caller to quickly anticipate
+// errors in the provenance results they may want to investigate. If
+// there are no errors, then all is in ordnung.
+var ErrProvAttach error = fmt.Errorf("warning: there were errors retrieving provenance from Wikibase API")
+
 // AttachProvenance will attach WikiBase provenance to SPARQL results
 // from Wikidata.
 func (sparql *WikiProv) attachProvenance(key string, lenHistory int, threads int) error {
@@ -134,14 +159,23 @@ func (sparql *WikiProv) attachProvenance(key string, lenHistory int, threads int
 		qids[qid] = false
 	}
 	if len(qids) < 1 {
-		return fmt.Errorf("No results returned from given key")
+		return fmt.Errorf("No results returned from given key: %s", key)
 	}
 	var uniqueQIDs []string
 	for key := range qids {
 		uniqueQIDs = append(uniqueQIDs, key)
 	}
 	provCache := getProvThreaded(uniqueQIDs, lenHistory, threads)
+
 	sparql.Provenance = provCache
+
+	// Check for errors so that we can warn the caller.
+	for _, prov := range provCache {
+		if prov.Error != nil {
+			return fmt.Errorf("%w: %s", ErrProvAttach, prov.Error)
+		}
+	}
+
 	return nil
 }
 
@@ -192,7 +226,8 @@ func getData(ch <-chan wikiprov.Provenance, provCache []wikiprov.Provenance) {
 func getProvenance(qid string, lenHistory int) wikiprov.Provenance {
 	prov, err := wikiprov.GetWikidataProvenance(qid, lenHistory)
 	if err != nil {
-		panic(err)
+		// We'll handle the error upstream.
+		prov.Error = err
 	}
 	return prov
 }

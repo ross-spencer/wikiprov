@@ -77,6 +77,12 @@ func GetWikidataProvenance(id string, history int) (Provenance, error) {
 		return Provenance{}, err
 	}
 
+	const expectedCode int = 200
+	if resp.StatusCode != expectedCode {
+		responseError := ResponseError{}
+		return Provenance{}, responseError.makeError(200, resp.StatusCode)
+	}
+
 	data, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 
@@ -97,4 +103,16 @@ func GetWikidataProvenance(id string, history int) (Provenance, error) {
 // Version returns the agent string for this package.
 func Version() string {
 	return agent
+}
+
+// SetWikibaseAPIURL lets the caller configure its own Wikibase API
+// service to connect to.
+func SetWikibaseAPIURL(newURL string) {
+	wikibaseAPI = newURL
+}
+
+// SetWikibasePermalinkBaseURL lets the caller configure the Wikibase
+// base URL for the permalink that needs to be built.
+func SetWikibasePermalinkBaseURL(newURL string) {
+	wikibasePermalinkBase = newURL
 }

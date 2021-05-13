@@ -130,6 +130,7 @@ type Provenance struct {
 	Modified  string
 	Permalink string
 	History   []string
+	Error     error `json:"-"`
 }
 
 // buildPermalink creates a permalink based on the title and revision
@@ -137,14 +138,12 @@ type Provenance struct {
 func (prov *Provenance) buildPermalink() string {
 	const paramTitle = "title"
 	const paramOldID = "oldid"
-	const paramFormat = "format"
-	req, _ := http.NewRequest("GET", wikidataBase, nil)
+	req, _ := http.NewRequest("GET", wikibasePermalinkBase, nil)
 	query := req.URL.Query()
 	title := prov.Title
 	oldid := prov.Revision
 	query.Set(paramTitle, title)
 	query.Set(paramOldID, fmt.Sprintf("%d", oldid))
-	query.Set(paramFormat, format)
 	req.URL.RawQuery = query.Encode()
 	return fmt.Sprintf("%s", req.URL)
 }

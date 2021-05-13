@@ -5,8 +5,11 @@ package wikiprov
 
 const agent string = "wikiprov/0.0.2 (https://github.com/ross-spencer/wikiprov/; all.along.the.watchtower+github@gmail.com)"
 
-var wikibaseAPI = "https://www.wikidata.org/w/api.php"
-var wikidataBase = "https://www.wikidata.org/w/index.php"
+const defaultWikibaseAPI = "https://www.wikidata.org/w/api.php"
+const wikibasePermaURL = "https://www.wikidata.org/w/index.php"
+
+var wikibaseAPI = defaultWikibaseAPI
+var wikibasePermalinkBase = wikibasePermaURL
 
 var format = "json"
 var action = "query"

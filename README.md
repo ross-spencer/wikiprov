@@ -3,6 +3,22 @@
 Rudimentary reification in Wikidata. This package takes the spargo generic
 SPARQL handling package I created and wraps Wikibase provenance around it.
 
+[![Go test](https://github.com/ross-spencer/wikiprov/actions/workflows/github-actions.yml/badge.svg)](https://github.com/ross-spencer/wikiprov/actions/workflows/github-actions.yml)
+
+## wikiprov status
+
+[![GoDoc](https://godoc.org/github.com/ross-spencer/wikiprov?status.svg)](https://godoc.org/github.com/ross-spencer/wikiprov/pkg/wikiprov)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ross-spencer/spargo/pkg/spargo)](https://goreportcard.com/report/github.com/ross-spencer/wikiprov/pkg/wikiprov)
+
+## wikiprov: spargo status
+
+[![GoDoc](https://godoc.org/github.com/ross-spencer/wikiprov?status.svg)](https://godoc.org/github.com/ross-spencer/wikiprov/pkg/spargo)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ross-spencer/spargo/pkg/spargo)](https://goreportcard.com/report/github.com/ross-spencer/wikiprov/pkg/spargo)
+
+-----
+
+## Introduction
+
 Where the generic SPARQL results from any service look as follows:
 
 ```json
@@ -14,9 +30,9 @@ Where the generic SPARQL results from any service look as follows:
 }
 ```
 With Wikidata sitting on-top of a Wikibase instance, it allows us to try and
-retrieve some amount of provenance for the IRIS returned. While not pure linked
-data as we might like we can make the best of what we've got and return it with
-our query results anyway. Those results take the form:
+retrieve some amount of provenance for the IRIs returned. While not 'pure'
+linked data as we might like we can make the best of what we've got and return
+it with our query results anyway. Those results take the form:
 
 ```json
 {
@@ -47,3 +63,21 @@ tentatively looks as follows:
 ```
 This enables users to look up a QID and see what last happened to that record
 from the same SPARQL results source.
+
+## Architectural decisions
+
+### Errors returned from SPARQLWithProv
+
+When the call is made to the underlying Wikibase API the results are
+all collected and returned to the caller. If there are any errors
+spotted thereafter then the results are rejected and a blank WikiProv{}
+structure is replaced. Callers will need to run the process again or
+fallback on SPARQLGo from the `spargo` library.
+
+The handling of this situation can be much more graceful in future
+implementations. Rejecting all results to begin seemed the least
+ambiguous while the library is developed further.
+
+## License
+
+Apache License 2.0. More info [here](LICENSE).
