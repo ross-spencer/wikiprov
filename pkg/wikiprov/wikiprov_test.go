@@ -14,7 +14,38 @@ import (
 // next test... The use of testInit() might point to a different pattern
 // that we can use in another release.
 func testInit() {
-	wikibaseAPI = defaultWikibaseAPI
+	wikibaseAPI = constructWikibaseAPIURL(defaultBaseURI)
+	wikibasePermalinkBase = constructWikibaseIndexURL(defaultBaseURI)
+}
+
+// TestConstructAPIURL ensures that we correctly create the URL needed
+// to talk to the Wikimedia API.
+func TestConstructAPIURL(t *testing.T) {
+	urlA := constructWikibaseAPIURL("http://example.com")
+	urlB := constructWikibaseAPIURL("http://example.com/")
+	// res is expected to be the same in both cases.
+	res := "http://example.com/w/api.php"
+	if urlA != res {
+		t.Errorf("Incorrect URL created, expected: '%s', received: '%s'", res, urlA)
+	}
+	if urlB != res {
+		t.Errorf("Incorrect URL created, expected: '%s', received: '%s'", res, urlB)
+	}
+}
+
+// TestConstructIndexURL ensures that we correctly create the URL needed
+// for the Wikimedia index page, e.g. for resolution of permalinks.
+func TestConstructIndexURL(t *testing.T) {
+	urlA := constructWikibaseIndexURL("http://example.com")
+	urlB := constructWikibaseIndexURL("http://example.com/")
+	// res is expected to be the same in both cases.
+	res := "http://example.com/w/index.php"
+	if urlA != res {
+		t.Errorf("Incorrect URL created, expected: '%s', received: '%s'", res, urlA)
+	}
+	if urlB != res {
+		t.Errorf("Incorrect URL created, expected: '%s', received: '%s'", res, urlB)
+	}
 }
 
 // TestGetWikidataProvenance provides a simple test case to ensure that
@@ -144,10 +175,10 @@ func TestBuildRequest(t *testing.T) {
 
 	// The request to get provenance for the given QID, in this case,
 	// QID needs to be:
-	const expectedURL string = "https://www.wikidata.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1&rvprops=ids%7Cuser%7Ccomment%7Ctimestamp%7Csha1&titles=Q12345"
+	const expectedURL string = "https://www.wikidata.org/w/api.php?action=query&format=json&prop=revisions&rvlimit=1&rvprop=ids%7Cuser%7Ccomment%7Ctimestamp%7Csha1&titles=item%3AQ12345"
 	// We test that here...
 	if req.URL.String() != expectedURL {
-		t.Errorf("Requested string we built isn't correct: '%s', expected: '%s'",
+		t.Errorf("Requested string we built isn't correct, \nreceived: '%s', \nexpected: '%s'",
 			req.URL.String(),
 			expectedURL,
 		)

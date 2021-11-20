@@ -147,6 +147,52 @@ func TestSPARQLWithProvError(t *testing.T) {
 	}
 }
 
+// urlTest struct for table-driven testing of URL generation below.
+type urlTest struct {
+	urlValue      string
+	apiExpected   string
+	indexExpected string
+}
+
+// urlTests provide table-driven testing of URL generation below.
+var urlTests = []urlTest{
+	// Set the URLs to different values and inspect the results.
+	urlTest{
+		"http://example0.com",
+		"http://example0.com/w/api.php",
+		"http://example0.com/w/index.php",
+	},
+	urlTest{
+		"http://example1.com",
+		"http://example1.com/w/api.php",
+		"http://example1.com/w/index.php",
+	},
+	// Reset to default values.
+	urlTest{
+		"https://www.wikidata.org/",
+		"https://www.wikidata.org/w/api.php",
+		"https://www.wikidata.org/w/index.php",
+	},
+}
+
+// TestSetWikibasePermalinkBaseURL makes sure that we handle the
+// generation of URLs correctly.
+func TestSetWikibasePermalinkBaseURL(t *testing.T) {
+	for _, value := range urlTests {
+		wikiprov.SetWikibaseURLs(value.urlValue)
+		apiExpected := value.apiExpected
+		indexExpected := value.indexExpected
+		res := wikiprov.GetWikibaseAPIURL()
+		if res != apiExpected {
+			t.Errorf("%s != %s", res, apiExpected)
+		}
+		res = wikiprov.GetWikibaseIndexURL()
+		if res != indexExpected {
+			t.Errorf("%s != %s", res, indexExpected)
+		}
+	}
+}
+
 // TestSPARQLWithProv is used to look at the provenance attached to a
 // SPARQL result from a Wikidata like service and ensures that the
 // data is constructed as we need.
@@ -206,7 +252,7 @@ func TestSPARQLWithProv(t *testing.T) {
 		testProvOutput.Title = "Q12345"
 		testProvOutput.Revision = 2600
 		testProvOutput.Modified = "2020-08-31T23:13:00Z"
-		testProvOutput.Permalink = "http://example.com?oldid=2600&title=Q12345"
+		testProvOutput.Permalink = "http://example.com/w/index.php?oldid=2600&title=Q12345"
 		testProvOutput.History = append(testProvOutput.History, "2020-08-31T23:13:00Z (oldid: 2600): 'Emmanuel Goldstein' edited: 'edit comment #1'")
 		testProvOutput.History = append(testProvOutput.History, "2020-08-01T23:13:00Z (oldid: 1000): 'Robert Smith' edited: 'edit comment #2'")
 		testProvOutput.Error = nil

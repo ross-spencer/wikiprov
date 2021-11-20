@@ -1,5 +1,9 @@
 package main
 
+// Reference application for accessing provenance information via
+// Wikidata. Generic instances, e.g. your own Wikibase are not handled
+// by this app.
+
 import (
 	"flag"
 	"fmt"

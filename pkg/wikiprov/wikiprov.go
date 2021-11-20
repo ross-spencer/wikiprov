@@ -33,13 +33,28 @@ func getRevisionProperties() string {
 
 // buildRequest will build the request we want to send to Wikibase.
 // An error is returned if the request is malformed.
+//
+// A request can work on Wikibase without the itemPrefix below, but
+// for other Wikibase instances, it requires it. Using it provides,
+// perhaps, the best compatibility.
+//
+//	E.g.
+//		https://www.wikidata.org/w/api.php?
+//		   action=query
+//		   &format=json
+//		   &prop=revisions
+//		   &rvlimit=1
+//		   &rvprop=ids|user|comment|timestamp|sha1
+//		   &titles=item:Q12345
+//
 func buildRequest(id string, history int) (*http.Request, error) {
 	const paramFormat = "format"
 	const paramAction = "action"
 	const paramTitles = "titles"
 	const paramProps = "prop"
 	const paramLimit = "rvlimit"
-	const paramRevisionProps = "rvprops"
+	const paramRevisionProp = "rvprop"
+	const itemPrefix = "item:"
 
 	req, err := http.NewRequest("GET", wikibaseAPI, nil)
 	if err != nil {
@@ -49,12 +64,13 @@ func buildRequest(id string, history int) (*http.Request, error) {
 	query := req.URL.Query()
 	query.Set(paramFormat, format)
 	query.Set(paramAction, action)
-	query.Set(paramTitles, id)
+	query.Set(paramTitles, fmt.Sprintf("%s%s", itemPrefix, id))
 	query.Set(paramProps, prop)
 	query.Set(paramLimit, fmt.Sprintf("%d", history))
-	query.Set(paramRevisionProps, getRevisionProperties())
+	query.Set(paramRevisionProp, getRevisionProperties())
 
 	req.URL.RawQuery = query.Encode()
+
 	req.Header.Add("User-Agent", agent)
 
 	return req, nil
@@ -105,14 +121,33 @@ func Version() string {
 	return agent
 }
 
+// SetWikibaseURLs sets the URL for this package to connect to. E.g.
+// newURL would point to Wikidata or a custome Wikibase instance.
+func SetWikibaseURLs(newURL string) {
+	wikibaseAPI = constructWikibaseAPIURL(newURL)
+	wikibasePermalinkBase = constructWikibaseIndexURL(newURL)
+}
+
 // SetWikibaseAPIURL lets the caller configure its own Wikibase API
 // service to connect to.
 func SetWikibaseAPIURL(newURL string) {
-	wikibaseAPI = newURL
+	wikibaseAPI = constructWikibaseAPIURL(newURL)
 }
 
 // SetWikibasePermalinkBaseURL lets the caller configure the Wikibase
 // base URL for the permalink that needs to be built.
 func SetWikibasePermalinkBaseURL(newURL string) {
-	wikibasePermalinkBase = newURL
+	wikibasePermalinkBase = constructWikibaseIndexURL(newURL)
+}
+
+// GetWikibaseAPIURL lets the caller configure its own Wikibase API
+// service to connect to.
+func GetWikibaseAPIURL() string {
+	return wikibaseAPI
+}
+
+// GetWikibaseIndexURL lets the caller configure its own Wikibase API
+// service to connect to.
+func GetWikibaseIndexURL() string {
+	return wikibasePermalinkBase
 }
