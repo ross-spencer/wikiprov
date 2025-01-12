@@ -1,0 +1,36 @@
+#!/usr/bin/spargo
+
+ENDPOINT=https://query.wikidata.org/sparql
+WIKIBASEURL=https://www.wikidata.org/
+HISTORY=5
+SUBJECTPARAM=?uri
+
+# Return all file format records from Wikidata.
+
+SELECT DISTINCT ?uri ?uriLabel ?puid ?extension ?mimetype ?encoding ?referenceLabel ?date ?relativity ?offset ?sig WHERE {
+  { ?uri (wdt:P31/(wdt:P279*)) wd:Q235557. }
+  UNION
+  { ?uri (wdt:P31/(wdt:P279*)) wd:Q26085352. }
+  FILTER(EXISTS { ?uri (wdt:P2748|wdt:P1195|wdt:P1163|ps:P4152) _:b2. })
+  FILTER((STRLEN(?sig)) >= 4 )
+  OPTIONAL { ?uri wdt:P2748 ?puid. }
+  OPTIONAL { ?uri wdt:P1195 ?extension. }
+  OPTIONAL { ?uri wdt:P1163 ?mimetype. }
+  OPTIONAL {
+    ?uri p:P4152 ?object.
+    OPTIONAL { ?object pq:P3294 ?encoding. }
+    OPTIONAL { ?object ps:P4152 ?sig. }
+    OPTIONAL { ?object pq:P2210 ?relativity. }
+    OPTIONAL { ?object pq:P4153 ?offset. }
+    OPTIONAL {
+      ?object prov:wasDerivedFrom ?provenance.
+      OPTIONAL {
+        ?provenance pr:P248 ?reference;
+          pr:P813 ?date.
+      }
+    }
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE], de". }
+}
+ORDER BY (?uri)
+LIMIT 10

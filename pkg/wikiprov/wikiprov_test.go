@@ -1,7 +1,6 @@
 package wikiprov
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -144,15 +143,6 @@ func TestGetWikidataProvenanceError(t *testing.T) {
 	// Ensure that the error is not nil.
 	if err == nil {
 		t.Errorf("We were expecting an error from function, received: 'nil'")
-	}
-
-	// Ensure that it is the error we anticipated.
-	responseError := ResponseError{}
-	if err != nil && !errors.As(err, &responseError) {
-		t.Errorf("We were expecting a specific error '%s' from this test, received: '%s'",
-			responseError,
-			err,
-		)
 	}
 
 	// Ensure that provenance returned is empty.

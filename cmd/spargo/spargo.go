@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/ross-spencer/wikiprov/pkg/spargo"
@@ -14,11 +15,22 @@ import (
 
 // SHEBANG provides some way of recognizing a .sparql file compatible
 // with spargo, aka. our .sparql magic number.
-var SHEBANG = []string{"#!spargo", "#!/usr/bin/spargo"}
+var SHEBANG string = "#!"
 
 // ENDPOINT must be specified in a .sparql file so that a query can be
 // sent to the appropriate SPARQL endpoint.
 const ENDPOINT string = "ENDPOINT"
+
+// WIKIBASE describes the Wikibase URL from where we will retrieve
+// provenance information.
+const WIKIBASEURL string = "WIKIBASEURL"
+
+// HISTORY describes the length of history to return.
+const HISTORY string = "HISTORY"
+
+// SUBJECTPARAM describes the ?param to use as the subject of the query
+// for which we want provenance for.
+const SUBJECTPARAM string = "SUBJECTPARAM"
 
 // wikiEndpoint allows us to check that only the Wikidata endpoint is
 // supplied to the utility.
@@ -33,6 +45,19 @@ var (
 	threads    int
 )
 
+type wbQuery struct {
+	url      string
+	wikibase string
+	query    string
+	param    string
+	subject  string
+	history  int
+}
+
+func (wb wbQuery) String() string {
+	return fmt.Sprintf("---\nurl: %s\nwikibaseURL: %s\nquery: %s\nhistory:%d\n---\n", wb.url, wb.wikibase, wb.query, wb.history)
+}
+
 func init() {
 	flag.StringVar(&endpoint, "endpoint", "", "endpoint to query")
 	flag.StringVar(&query, "query", "", "sparql query to run")
@@ -42,59 +67,59 @@ func init() {
 	flag.BoolVar(&vers, "version", false, "application version and user-agent")
 }
 
-// Check for spargo shebang.
-func matchShebang(needle string, slice []string) bool {
-	for _, item := range slice {
-		if item == needle {
-			return true
-		}
+// extractKey will extract a key from the input script.
+func extractKey(line string, key string) string {
+	str := strings.SplitN(line, "=", 2)
+	if len(str) < 2 {
+		fmt.Fprintf(os.Stderr, "cannot extract key '%s' from file", key)
+		return ""
 	}
-	return false
+	return strings.TrimSpace(str[1])
 }
 
 // Extract the query from the .sparql input.
-func extractQuery(sparqlFile string) (string, string, error) {
-	var shebang, url, queryString string
+func extractQuery(sparqlFile string) (wbQuery, error) {
 	var err error
+	var wb wbQuery
 	for _, line := range strings.Split(sparqlFile, "\n") {
-		if line == "" {
-			// Pass.
-		} else if matchShebang(line, SHEBANG) {
-			shebang = line
+		if strings.HasPrefix(line, SHEBANG) {
+			continue
+		} else if line == "" {
+			continue
 		} else if strings.Contains(strings.ToUpper(line), ENDPOINT) {
-			_url := strings.SplitN(line, "=", 2)
-			if len(_url) < 2 {
-				err = fmt.Errorf("incorrect endpoint formatting: %s", line)
-			}
-			// TODO: validate the URL.
-			url = strings.TrimSpace(_url[1])
+			url := extractKey(line, ENDPOINT)
 			if !strings.Contains(url, wikiEndpoint) {
-				errString := fmt.Sprintf("Endpoint does not look like a valid Wikidata endpoint: %s", url)
+				errString := fmt.Sprintf("endpoint does not look like a valid Wikidata endpoint: %s", url)
 				err = fmt.Errorf(errString)
 			}
+			wb.url = url
+		} else if strings.Contains(strings.ToUpper(line), WIKIBASEURL) {
+			wbURL := extractKey(line, WIKIBASEURL)
+			wb.wikibase = wbURL
+		} else if strings.Contains(strings.ToUpper(line), HISTORY) {
+			wbURL := extractKey(line, HISTORY)
+			wb.history, _ = strconv.Atoi(wbURL)
+		} else if strings.Contains(strings.ToUpper(line), SUBJECTPARAM) {
+			wb.param = strings.Replace(extractKey(line, SUBJECTPARAM), "?", "", 1)
 		} else {
-			queryString = queryString + line + "\n"
+			wb.query = wb.query + strings.TrimSpace(line) + "\n"
 		}
 	}
-	if shebang == "" {
-		err = fmt.Errorf("shebang '%s' is empty or incorrect", shebang)
-	}
-	return url, queryString, err
+	return wb, err
 }
 
 func runQuery(sparqlFile string) {
-	url, queryString, err := extractQuery(sparqlFile)
+	wb, err := extractQuery(sparqlFile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
-	fmt.Fprintf(os.Stderr, "Connecting to: %s\n\n", url)
-	fmt.Fprintf(os.Stderr, "Query: %s\n", queryString)
-	fmt.Fprintf(os.Stderr, "History: %d, Threads: %d\n", lenHistory, threads)
-	if param == "" {
-		fmt.Fprintf(os.Stderr, "Not returning provenance for query\n\n")
+	fmt.Fprintf(os.Stderr, "connecting to: %s", wb)
+	fmt.Fprintf(os.Stderr, "threads: %d\n", threads)
+	if wb.param == "" {
+		fmt.Fprintf(os.Stderr, "?param not set, not returning provenance for query\n")
 	}
-	provResults, err := spargo.SPARQLWithProv(url, queryString, param, lenHistory, threads)
+	provResults, err := spargo.SPARQLWithProv(wb.url, wb.query, wb.param, wb.history, threads)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 	}
@@ -116,8 +141,7 @@ func isPipeInput() bool {
 // spargo.
 //
 // TODO: there may be another pattern here using Open, but we are also
-//       anticipating other arguments to the program at different times, so...
-//
+// anticipating other arguments to the program at different times, so...
 func interpreterInput() (bool, string) {
 	if len(os.Args) == 2 {
 		sparql := os.Args[1]
@@ -170,25 +194,19 @@ func main() {
 	}
 	flag.Parse()
 	if vers {
-		fmt.Fprintf(os.Stderr, "%s (%s)\n", version(), spargo.DefaultAgent)
+		fmt.Fprintf(os.Stderr, "%s (%s)\n", getVersion(), spargo.DefaultAgent)
 		os.Exit(0)
 	} else if flag.NFlag() == 0 {
-		fmt.Fprintln(os.Stderr, "Usage:  wdspargo {options}              ")
+		fmt.Fprintln(os.Stderr, "spargo (with provenance): run sparql queries from the command-line.")
+		fmt.Fprintln(os.Stderr, "usage:  spargo {options}              ")
 		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-sparql] ...")
 		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-query]  ...")
 		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-variable]  ...")
 		fmt.Fprintln(os.Stderr, "                 OPTIONAL: [-version]   ")
 		fmt.Fprintln(os.Stderr, "")
-		fmt.Fprintln(os.Stderr, "Output: [JSON]   {url}")
-		fmt.Fprintf(os.Stderr, "Output: [STRING] '%s (%s) ...'\n\n", version(), spargo.DefaultAgent)
+		fmt.Fprintln(os.Stderr, "output: [JSON]   {url}")
+		fmt.Fprintf(os.Stderr, "output: [STRING] '%s (%s) ...'\n\n", getVersion(), spargo.DefaultAgent)
 		flag.Usage()
 		os.Exit(0)
-	} else {
-		fmt.Println("Welcome to spargo: arg handling is not yet implemented. Take a look at the README.md for examples on how to used spargo with piped input...")
-		fmt.Printf("\nDebug, inputs:\n\n")
-		fmt.Printf("   * SPARQL: '%s' \n", endpoint)
-		fmt.Printf("   * Query: '%s' \n", query)
-		fmt.Println("")
-		fmt.Println("Take a look at the README.md for examples on how to used spargo with piped input...")
 	}
 }

@@ -1,0 +1,12 @@
+#!/usr/bin/spargo
+
+ENDPOINT=https://query.wikidata.org/sparql
+WIKIBASEURL=https://www.wikidata.org/
+HISTORY=3
+
+# subject, predicate, or object can all be used here. I have elected for
+# ?subject as it outputs more information.
+SUBJECTPARAM=?subject
+
+# Describe JPEG2000 in Wikidata database.
+describe wd:Q931783

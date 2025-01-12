@@ -33,12 +33,13 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s \n", wikiprov.Version())
 		os.Exit(0)
 	} else if flag.NFlag() == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: wikiprov <QID e.g. Q27229608> {options}              ")
+		fmt.Fprintln(os.Stderr, "wikiprov: return info about a QID from Wikidata")
+		fmt.Fprintln(os.Stderr, "usage: wikiprov <QID e.g. Q27229608> {options}              ")
 		fmt.Fprintln(os.Stderr, "                                     OPTIONAL: [-history] ...")
 		fmt.Fprintln(os.Stderr, "                                     OPTIONAL: [-version]   ")
 		fmt.Fprintln(os.Stderr, "")
-		fmt.Fprintln(os.Stderr, "Output: [JSON]   {wikidataProvenace}")
-		fmt.Fprintf(os.Stderr, "Output: [STRING] '%s ...'\n\n", wikiprov.Version())
+		fmt.Fprintln(os.Stderr, "output: [JSON]   {wikidataProvenace}")
+		fmt.Fprintf(os.Stderr, "output: [STRING] '%s ...'\n\n", wikiprov.Version())
 		flag.Usage()
 		os.Exit(0)
 	}
@@ -51,7 +52,7 @@ func main() {
 	}
 
 	if qid == "" {
-		fmt.Println("Please provide a QID to lookup...")
+		fmt.Println("please provide a QID to lookup...")
 		return
 	}
 

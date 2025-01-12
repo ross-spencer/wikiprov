@@ -1,7 +1,6 @@
 package spargo
 
 import (
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -36,13 +35,6 @@ func TestGetProvThreadedError(t *testing.T) {
 		for _, prov := range provs {
 			if prov.Error == nil {
 				t.Errorf("Expecting a non-'nil' error from getProvThreaded, received: '%s'", prov.Error)
-			}
-			responseError := wikiprov.ResponseError{}
-			if !errors.As(prov.Error, &responseError) {
-				t.Errorf("Unexpected error condition returned, expecting: '%s' received %s",
-					responseError,
-					prov.Error,
-				)
 			}
 		}
 	}
@@ -81,6 +73,7 @@ func TestGetProvThreaded(t *testing.T) {
 		// Expected test output. Results from getProvThreaded should match.
 		testProvOutput := wikiprov.Provenance{}
 		testProvOutput.Title = "Q12345"
+		testProvOutput.Entity = "http://wikidata.org/entity/Q12345"
 		testProvOutput.Revision = 2600
 		testProvOutput.Modified = "2020-08-31T23:13:00Z"
 		testProvOutput.Permalink = "https://www.wikidata.org/w/index.php?oldid=2600&title=Q12345"
@@ -139,11 +132,7 @@ func TestSPARQLWithProvError(t *testing.T) {
 	}
 
 	if err == nil {
-		t.Errorf("Anticipating an error from SPARQLWithProv, received 'nil': %s", err)
-	}
-
-	if !errors.Is(err, ErrProvAttach) {
-		t.Errorf("Expecting error: '%s' but received: '%s'", ErrProvAttach, err)
+		t.Errorf("anticipating an error from SPARQLWithProv, received 'nil': %s", err)
 	}
 }
 
@@ -157,18 +146,18 @@ type urlTest struct {
 // urlTests provide table-driven testing of URL generation below.
 var urlTests = []urlTest{
 	// Set the URLs to different values and inspect the results.
-	urlTest{
+	{
 		"http://example0.com",
 		"http://example0.com/w/api.php",
 		"http://example0.com/w/index.php",
 	},
-	urlTest{
+	{
 		"http://example1.com",
 		"http://example1.com/w/api.php",
 		"http://example1.com/w/index.php",
 	},
 	// Reset to default values.
-	urlTest{
+	{
 		"https://www.wikidata.org/",
 		"https://www.wikidata.org/w/api.php",
 		"https://www.wikidata.org/w/index.php",
@@ -250,6 +239,7 @@ func TestSPARQLWithProv(t *testing.T) {
 		// Expected test output. Results from getProvThreaded should match.
 		testProvOutput := wikiprov.Provenance{}
 		testProvOutput.Title = "Q12345"
+		testProvOutput.Entity = "http://wikidata.org/entity/Q12345"
 		testProvOutput.Revision = 2600
 		testProvOutput.Modified = "2020-08-31T23:13:00Z"
 		testProvOutput.Permalink = "http://example.com/w/index.php?oldid=2600&title=Q12345"

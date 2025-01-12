@@ -1,11 +1,15 @@
 #!/usr/bin/spargo
 
 ENDPOINT=https://query.wikidata.org/sparql
+WIKIBASEURL=https://www.wikidata.org/
+HISTORY=5
+SUBJECTPARAM=?item
 
-# Default query example on Wikidata: NB. we can change the language here...
+# Default query example on Wikidata:
 SELECT ?item ?itemLabel
 WHERE
 {
   ?item wdt:P31 wd:Q146.
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
+limit 1
