@@ -1,33 +1,27 @@
-on: [push, pull_request]
+name: unit-tests
 
-name: Go test
+on:
+    pull_request:
+    push:
+        branches: [main]
 
 jobs:
-  test:
-    ## We want to define a strategy for our job
+  ci:
+    name: "run unit tests"
     strategy:
-      ## this will contain a matrix of all of the combinations
-      ## we wish to test again:
+      fail-fast: true
       matrix:
-        go-version: [1.16.x]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
-
-    ## Defines the platform for each test run
-    runs-on: ${{ matrix.platform }}
-
-    ## the steps that will be run through for each version and platform
-    ## combination
+        os:  ["ubuntu-latest", "windows-latest", "macOS-latest"]
+        go:  ['1.18']
+    runs-on: ${{ matrix.os }}
     steps:
-    ## sets up go based on the version
-    - name: Install Go
-      uses: actions/setup-go@v2
+    - name: "checkout"
+      uses: actions/checkout@v4
+    - name: "fetch unshallow"
+      run: git fetch --prune --unshallow
+    - name: Set up Go
+      uses: actions/setup-go@v5
       with:
-        go-version: ${{ matrix.go-version }}
-
-    ## checks out our code locally so we can work with the files
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    ## runs go test ./...
-    - name: Test wikiprov
-      run: go test ./...
+        go-version: ${{ matrix.go }}
+    - name: "test"
+      run: "go test ./..."
