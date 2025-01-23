@@ -25,7 +25,7 @@ SPARQL handling package I created and wraps Wikibase provenance around it.
     https://godoc.org/github.com/ross-spencer/spargo?status.svg
 
 [godoc-1]:
-    https://godoc.org/gith
+    https://pkg.go.dev/github.com/ross-spencer/wikiprov/pkg/wikiprov
 
 [godoc-2]:
     https://godoc.org/github.com/ross-spencer/wikiprov/pkg/spargo
