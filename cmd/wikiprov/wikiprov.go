@@ -45,8 +45,8 @@ func main() {
 	}
 
 	if demo {
-		var envoyPDF = "Q5381415"
-		res, _ := wikiprov.GetWikidataProvenance(envoyPDF, 10)
+		var demoQID = "Q49300657"
+		res, _ := wikiprov.GetWikidataProvenance(demoQID, 10)
 		fmt.Println(res)
 		return
 	}
